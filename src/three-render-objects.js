@@ -24,26 +24,26 @@ import {
 const three = window.THREE
   ? window.THREE // Prefer consumption from global THREE, if exists
   : {
-  WebGLRenderer,
-  Scene,
-  PerspectiveCamera,
-  Raycaster,
-  TextureLoader,
-  Vector2,
-  Vector3,
-  Box3,
-  Color,
-  Mesh,
-  SphereGeometry,
-  MeshBasicMaterial,
-  BackSide,
+    WebGLRenderer,
+    Scene,
+    PerspectiveCamera,
+    Raycaster,
+    TextureLoader,
+    Vector2,
+    Vector3,
+    Box3,
+    Color,
+    Mesh,
+    SphereGeometry,
+    MeshBasicMaterial,
+    BackSide,
 
-  EventDispatcher,
-  MOUSE,
-  Quaternion,
-  Spherical,
-  Clock
-};
+    EventDispatcher,
+    MOUSE,
+    Quaternion,
+    Spherical,
+    Clock
+  };
 
 import { TrackballControls as ThreeTrackballControls } from 'three/examples/jsm/controls/TrackballControls.js';
 import { OrbitControls as ThreeOrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
@@ -83,22 +83,22 @@ export default Kapsule({
     tooltipContent: { triggerUpdate: false },
     hoverDuringDrag: { default: false, triggerUpdate: false },
     clickAfterDrag: { default: false, triggerUpdate: false },
-    onHover: { default: () => {}, triggerUpdate: false },
-    onClick: { default: () => {}, triggerUpdate: false },
+    onHover: { default: () => { }, triggerUpdate: false },
+    onClick: { default: () => { }, triggerUpdate: false },
     onRightClick: { triggerUpdate: false }
   },
 
   methods: {
-    tick: function(state) {
+    tick: function (state) {
       if (state.initialised) {
         state.controls.update && state.controls.update(state.clock.getDelta()); // timedelta is required for fly controls
 
-        state.postProcessingComposer
-          ? state.postProcessingComposer.render() // if using postprocessing, switch the output to it
-          : state.renderer.render(state.scene, state.camera);
+
 
         state.extraRenderers.forEach(r => r.render(state.scene, state.camera));
-
+        state.postProcessingComposer
+          ? state.postProcessingComposer.render() // if using postprocessing, switch the output to it
+          : state.extraRenderers[0].render(state.scene, state.camera);
         if (state.enablePointerInteraction) {
           // Update tooltip and trigger onHover events
           let topObject = null;
@@ -125,17 +125,17 @@ export default Kapsule({
 
       return this;
     },
-    getPointerPos: function(state) {
+    getPointerPos: function (state) {
       const { x, y } = state.pointerPos;
       return { x, y };
     },
-    cameraPosition: function(state, position, lookAt, transitionDuration) {
+    cameraPosition: function (state, position, lookAt, transitionDuration) {
       const camera = state.camera;
 
       // Setter
       if (position && state.initialised) {
         const finalPos = position;
-        const finalLookAt = lookAt || {x: 0, y: 0, z: 0};
+        const finalLookAt = lookAt || { x: 0, y: 0, z: 0 };
 
         if (!transitionDuration) { // no animation
           setCameraPos(finalPos);
@@ -230,11 +230,11 @@ export default Kapsule({
       objs.forEach(obj => box.expandByObject(obj));
 
       // extract global x,y,z min/max
-      return  Object.assign(...['x', 'y', 'z'].map(c => ({
+      return Object.assign(...['x', 'y', 'z'].map(c => ({
         [c]: [box.min[c], box.max[c]]
       })));
     },
-    getScreenCoords: function(state, x, y, z) {
+    getScreenCoords: function (state, x, y, z) {
       const vec = new three.Vector3(x, y, z);
       vec.project(this.camera()); // project to the camera plane
       return { // align relative pos to canvas dimensions
@@ -242,7 +242,7 @@ export default Kapsule({
         y: -(vec.y - 1) * state.height / 2,
       };
     },
-    getSceneCoords: function(state, screenX, screenY, distance = 0) {
+    getSceneCoords: function (state, screenX, screenY, distance = 0) {
       const relCoords = new three.Vector2(
         (screenX / state.width) * 2 - 1,
         -(screenY / state.height) * 2 + 1
@@ -252,7 +252,7 @@ export default Kapsule({
       raycaster.setFromCamera(relCoords, state.camera);
       return Object.assign({}, raycaster.ray.at(distance, new three.Vector3()));
     },
-    intersectingObjects: function(state, x, y) {
+    intersectingObjects: function (state, x, y) {
       const relCoords = new three.Vector2(
         (x / state.width) * 2 - 1,
         -(y / state.height) * 2 + 1
@@ -295,10 +295,10 @@ export default Kapsule({
     state.container.appendChild(state.navInfo = document.createElement('div'));
     state.navInfo.className = 'scene-nav-info';
     state.navInfo.textContent = {
-        orbit: 'Left-click: rotate, Mouse-wheel/middle-click: zoom, Right-click: pan',
-        trackball: 'Left-click: rotate, Mouse-wheel/middle-click: zoom, Right-click: pan',
-        fly: 'WASD: move, R|F: up | down, Q|E: roll, up|down: pitch, left|right: yaw'
-      }[controlType] || '';
+      orbit: 'Left-click: rotate, Mouse-wheel/middle-click: zoom, Right-click: pan',
+      trackball: 'Left-click: rotate, Mouse-wheel/middle-click: zoom, Right-click: pan',
+      fly: 'WASD: move, R|F: up | down, Q|E: roll, up|down: pitch, left|right: yaw'
+    }[controlType] || '';
     state.navInfo.style.display = state.showNavInfo ? null : 'none';
 
     // Setup tooltip
@@ -334,7 +334,7 @@ export default Kapsule({
           state.toolTipElem.style.transform = `translate(-${state.pointerPos.x / state.width * 100}%, ${
             // flip to above if near bottom
             state.height - state.pointerPos.y < 100 ? 'calc(-100% - 8px)' : '21px'
-          })`;
+            })`;
         }
 
         function getOffset(el) {
@@ -370,22 +370,28 @@ export default Kapsule({
     });
 
     // Setup renderer, camera and controls
-    state.renderer = new three.WebGLRenderer(Object.assign({ antialias: true, alpha: true }, rendererConfig));
+    state.renderer = new three.WebGLRenderer(Object.assign({
+      antialias: true,
+      alpha: true
+    }, rendererConfig));
     state.renderer.setPixelRatio(Math.min(2, window.devicePixelRatio)); // clamp device pixel ratio
-    state.container.appendChild(state.renderer.domElement);
+    state.renderer.domElement.style.zIndex = 1;
+    state.renderer.setClearColor(0x000000, 0);
+		state.renderer.domElement.style.position = 'absolute';
+		state.renderer.domElement.style.top = 0;
 
-    // Setup extra renderers
+    // state.container.appendChild(state.renderer.domElement); // Setup extra renderers
+
     state.extraRenderers = extraRenderers;
-    state.extraRenderers.forEach(r => {
+    state.extraRenderers.forEach(function (r) {
       // overlay them on top of main renderer
-      r.domElement.style.position = 'absolute';
-      r.domElement.style.top = '0px';
       r.domElement.style.pointerEvents = 'none';
+      r.domElement.appendChild(state.renderer.domElement);
       state.container.appendChild(r.domElement);
     });
 
     // configure post-processing composer
-    state.postProcessingComposer = new ThreeEffectComposer(state.renderer);
+    state.postProcessingComposer = new ThreeEffectComposer(state.extraRenderers[0]);
     state.postProcessingComposer.addPass(new ThreeRenderPass(state.scene, state.camera)); // render scene as first pass
 
     // configure controls
@@ -393,7 +399,7 @@ export default Kapsule({
       trackball: ThreeTrackballControls,
       orbit: ThreeOrbitControls,
       fly: ThreeFlyControls
-    }[controlType])(state.camera, state.renderer.domElement);
+    }[controlType])(state.camera, state.extraRenderers[0].domElement);
 
     if (controlType === 'fly') {
       state.controls.movementSpeed = 300;
@@ -420,7 +426,7 @@ export default Kapsule({
 
     [state.renderer, state.postProcessingComposer, ...state.extraRenderers]
       .forEach(r => r.setSize(state.width, state.height));
-    state.camera.aspect = state.width/state.height;
+    state.camera.aspect = state.width / state.height;
     state.camera.updateProjectionMatrix();
 
     state.camera.position.z = 1000;
@@ -440,7 +446,7 @@ export default Kapsule({
       state.container.style.height = `${state.height}px`;
       [state.renderer, state.postProcessingComposer, ...state.extraRenderers]
         .forEach(r => r.setSize(state.width, state.height));
-      state.camera.aspect = state.width/state.height;
+      state.camera.aspect = state.width / state.height;
       state.camera.updateProjectionMatrix();
     }
 
@@ -455,7 +461,7 @@ export default Kapsule({
     if (changedProps.hasOwnProperty('backgroundColor')) {
       let alpha = parseToRgb(state.backgroundColor).alpha;
       if (alpha === undefined) alpha = 1;
-      state.renderer.setClearColor(new three.Color(opacify(1, state.backgroundColor)), alpha);
+      state.extraRenderers[0].setClearColor(new three.Color(opacify(1, state.backgroundColor)), alpha);
     }
 
     if (changedProps.hasOwnProperty('backgroundImageUrl')) {
